@@ -1,0 +1,749 @@
+# PROJECT: BankCore – Banking Management System
+
+Act as a Senior .NET Full-Stack Software Architect, Senior C# Developer, SQL Server Database Engineer, React Developer, and QA Engineer.
+
+I want you to help me build a complete, working, professional Banking Management System called **BankCore**.
+
+This is an independent portfolio project to demonstrate my C#, .NET, ASP.NET Core Web API, SQL Server, T-SQL, Entity Framework Core, REST API, React, and software testing skills for a Junior Software Engineer (.NET) application at People's Bank Sri Lanka.
+
+IMPORTANT:
+- This is a demonstration application, not a real banking system.
+- Do not connect to actual bank accounts, payment networks, or customer information.
+- Never claim that this project is production banking software.
+- Do not fabricate employment experience, project history, testing results, or certificates.
+- Prioritize a working, demonstrable MVP before 2 November 2026, 8:00 AM.
+- Build incrementally. Do not generate an enormous codebase without testing it.
+
+# 1. TECHNOLOGY STACK
+
+Backend:
+- C#
+- .NET 10
+- ASP.NET Core Web API
+- Controller-based architecture
+- Entity Framework Core 10
+- RESTful APIs
+- Data annotations and Fluent API validation
+- Dependency Injection
+- Swagger / OpenAPI
+- Structured logging
+- Global exception handling
+
+Frontend:
+- React
+- Vite
+- JavaScript
+- React Router
+- Axios
+- Bootstrap or Tailwind CSS
+- Responsive dashboard
+
+Database:
+- Microsoft SQL Server Developer Edition
+- SQL Server Management Studio
+- Entity Framework Core migrations
+- T-SQL
+- Foreign keys
+- Primary keys
+- Unique constraints
+- Indexes
+- Transactions
+- Stored procedures where appropriate
+
+Testing:
+- xUnit
+- ASP.NET Core integration testing
+- Postman
+- SQL verification scripts
+
+Development environment:
+- Windows 11
+- VS Code
+- PowerShell
+- .NET SDK 10.0.403
+- Node.js v22.20.0
+- npm 11.19.1
+
+Current workspace:
+D:\BankCore
+
+Existing folders:
+- backend
+- frontend
+- database
+- evidence
+- docs
+
+PostgreSQL 18 is installed and running, but the project must use Microsoft SQL Server. Do not modify or remove PostgreSQL.
+
+# 2. PROJECT ARCHITECTURE
+
+Use this architecture:
+
+React frontend
+    |
+    | HTTP / JSON
+    |
+ASP.NET Core Web API
+    |
+    | Entity Framework Core
+    |
+Microsoft SQL Server
+    |
+BankCoreDb
+
+Backend project:
+backend/BankCore.Api
+
+Suggested backend folders:
+
+BankCore.Api/
+    Controllers/
+    Models/
+    DTOs/
+    Data/
+    Services/
+    Interfaces/
+    Middleware/
+    Validators/
+    Migrations/
+    Program.cs
+    appsettings.json
+
+Frontend structure:
+
+frontend/
+    src/
+        api/
+        components/
+        layouts/
+        pages/
+        hooks/
+        utils/
+        App.jsx
+        main.jsx
+
+Database scripts:
+
+database/
+    01_CreateDatabase.sql
+    02_CreateTables.sql
+    03_Indexes.sql
+    04_StoredProcedures.sql
+    05_SeedData.sql
+    06_VerificationQueries.sql
+
+Documentation:
+
+docs/
+    PROJECT_REPORT.md
+    API_DOCUMENTATION.md
+    DATABASE_DESIGN.md
+    TESTING_REPORT.md
+
+Evidence:
+
+evidence/
+    screenshots/
+    postman/
+    test-results/
+
+# 3. CORE FUNCTIONAL REQUIREMENTS
+
+Implement the following modules.
+
+## A. Customer Management
+
+Create customer records with:
+- Customer ID
+- Full name
+- NIC number
+- Email
+- Phone number
+- Address
+- Created date
+- Active/inactive status
+
+Features:
+- Register customer
+- View all customers
+- View customer by ID
+- Update customer
+- Search customers
+- Deactivate customer
+
+Validation:
+- Required full name
+- Unique NIC
+- Valid email
+- Valid phone number
+- Required fields must be validated on the server
+
+## B. Bank Account Management
+
+Account fields:
+- Account ID
+- Account number
+- Customer ID
+- Account type
+- Balance
+- Currency
+- Account status
+- Created date
+
+Features:
+- Open new account
+- View all accounts
+- Search account by number
+- View customer accounts
+- Activate/deactivate account
+
+Business rules:
+- Account number must be unique.
+- Opening balance cannot be negative.
+- Only active accounts can perform transactions.
+- Account must belong to an existing customer.
+
+Use decimal for financial values. Never use float or double for money.
+
+## C. Deposit Management
+
+Create a deposit endpoint.
+
+Example:
+
+POST /api/transactions/deposit
+
+Request:
+
+{
+  "accountNumber": "1000000001",
+  "amount": 5000.00,
+  "description": "Cash deposit"
+}
+
+Requirements:
+- Validate account number.
+- Validate positive amount.
+- Ensure account is active.
+- Increase account balance.
+- Create transaction history.
+- Record transaction date.
+- Return updated balance.
+- Use a database transaction where necessary.
+
+## D. Withdrawal Management
+
+Create a withdrawal endpoint.
+
+Example:
+
+POST /api/transactions/withdraw
+
+Request:
+
+{
+  "accountNumber": "1000000001",
+  "amount": 1000.00,
+  "description": "Cash withdrawal"
+}
+
+Requirements:
+- Validate account.
+- Validate positive amount.
+- Check account status.
+- Prevent insufficient balance.
+- Decrease account balance.
+- Create transaction history.
+- Return updated balance.
+- Never allow negative account balances.
+
+## E. Fund Transfer
+
+Create:
+
+POST /api/transactions/transfer
+
+Request:
+
+{
+  "fromAccountNumber": "1000000001",
+  "toAccountNumber": "1000000002",
+  "amount": 2000.00,
+  "description": "Account transfer"
+}
+
+Requirements:
+- Both accounts must exist.
+- Both accounts must be active.
+- Source and destination must be different.
+- Amount must be positive.
+- Source account must have sufficient balance.
+- Debit and credit must be atomic.
+- If one operation fails, rollback the entire database transaction.
+- Record both debit and credit transaction entries.
+- Return transaction reference and updated balances.
+
+Use a SQL Server transaction with EF Core.
+Consider concurrency safety to prevent double-spending during simultaneous requests.
+
+## F. Transaction History
+
+Create:
+
+GET /api/transactions
+GET /api/transactions/{id}
+GET /api/accounts/{id}/transactions
+
+Support:
+- Pagination
+- Date filters
+- Transaction type filters
+- Account filters
+- Newest-first sorting
+
+Transaction types:
+- DEPOSIT
+- WITHDRAWAL
+- TRANSFER_IN
+- TRANSFER_OUT
+
+Store:
+- Transaction ID
+- Reference number
+- Account ID
+- Transaction type
+- Amount
+- Previous balance
+- New balance
+- Description
+- Created date
+
+Never expose internal stack traces or sensitive information in API errors.
+
+# 4. DATABASE DESIGN
+
+Create these SQL Server tables:
+
+1. Customers
+2. Accounts
+3. Transactions
+4. AuditLogs
+
+Use:
+- INT or BIGINT primary keys
+- Appropriate NVARCHAR lengths
+- DECIMAL(18,2) for financial amounts
+- DATETIME2 for timestamps
+- Foreign keys
+- Unique constraints
+- Check constraints
+- Indexes for frequently searched columns
+
+Create proper relationships:
+
+Customer 1 ---- Many Accounts
+
+Account 1 ---- Many Transactions
+
+Include appropriate indexes for:
+- NIC
+- AccountNumber
+- CustomerId
+- Transaction Reference
+- Transaction CreatedDate
+
+Provide SQL scripts to:
+- Create database
+- Create tables
+- Create indexes
+- Insert demonstration records
+- Execute verification queries
+
+Use fictional customer data only.
+
+Do not store passwords or payment card information in this MVP.
+
+# 5. BACKEND REQUIREMENTS
+
+Implement:
+- RESTful API controllers
+- Service layer
+- DTOs
+- Dependency injection
+- EF Core
+- SQL Server connection string configuration
+- Swagger
+- Global exception handling
+- Structured logging
+- Model validation
+- Consistent HTTP status codes
+
+Use a clean and understandable architecture appropriate for a junior software engineer portfolio project.
+
+Use:
+- 200 OK
+- 201 Created
+- 400 Bad Request
+- 404 Not Found
+- 409 Conflict
+- 500 Internal Server Error
+
+Do not put business logic directly inside controllers.
+
+Do not expose EF Core entities directly in API responses. Use DTOs.
+
+Add pagination to list endpoints.
+
+Add cancellation tokens to suitable asynchronous operations.
+
+Configure CORS to allow the local React development server.
+
+Do not hardcode database credentials in source code. Use user secrets or environment variables.
+
+# 6. FRONTEND REQUIREMENTS
+
+Build a professional banking dashboard.
+
+Design:
+- Clean modern banking interface
+- Responsive layout
+- Sidebar navigation
+- Header
+- Dashboard cards
+- Tables
+- Forms
+- Confirmation dialogs
+- Loading indicators
+- Error messages
+- Success notifications
+
+Pages:
+
+1. Dashboard
+2. Customers
+3. Register Customer
+4. Customer Details
+5. Accounts
+6. Open Account
+7. Account Details
+8. Deposit
+9. Withdrawal
+10. Fund Transfer
+11. Transaction History
+
+Dashboard metrics:
+- Total customers
+- Total accounts
+- Total deposits
+- Total withdrawals
+- Total account balances
+
+Display recent transactions.
+
+All dashboard information must come from actual backend API responses.
+
+Do not hardcode dashboard metrics.
+
+Use Axios with a centralized API configuration.
+
+Implement client-side form validation, but always validate on the server too.
+
+Make the UI responsive and professional.
+
+# 7. SECURITY AND RELIABILITY
+
+Apply appropriate practices:
+- Input validation
+- Parameterized database operations through EF Core
+- Safe error handling
+- No SQL injection vulnerabilities
+- CORS configuration
+- Avoid sensitive data in logs
+- Restrict excessive request payload sizes where appropriate
+- Prevent duplicate transactions
+- Database transaction rollback
+- Decimal financial calculations
+- Appropriate database constraints
+- Audit logging for financial operations
+
+Do not invent a production security certification.
+
+If authentication is implemented, use ASP.NET Core Identity or a properly validated JWT implementation. Keep authentication outside the first MVP if it delays the deadline. Clearly identify the MVP's security limitations.
+
+# 8. TESTING REQUIREMENTS
+
+Create xUnit tests for:
+
+Customer:
+- Successful customer creation
+- Invalid email
+- Duplicate NIC
+- Missing required fields
+
+Account:
+- Successful account creation
+- Invalid opening balance
+- Duplicate account number
+- Invalid customer reference
+
+Deposit:
+- Successful deposit
+- Zero deposit rejection
+- Negative deposit rejection
+- Invalid account rejection
+
+Withdrawal:
+- Successful withdrawal
+- Insufficient balance rejection
+- Negative withdrawal rejection
+
+Transfer:
+- Successful transfer
+- Same-account transfer rejection
+- Insufficient funds rejection
+- Invalid destination rejection
+- Atomic rollback on failure
+
+Use integration tests where practical.
+
+Provide Postman collection JSON with:
+- Customer endpoints
+- Account endpoints
+- Deposit
+- Withdrawal
+- Transfer
+- Transaction history
+
+Explain how to import and run the Postman collection.
+
+Never claim a test passed unless it was actually executed successfully.
+
+# 9. GITHUB REPOSITORY
+
+Prepare the repository for GitHub.
+
+Repository name:
+BankCore-Banking-Management-System
+
+Create:
+- README.md
+- .gitignore
+- LICENSE if appropriate
+- API documentation
+- Database documentation
+- Architecture diagram using Mermaid
+- Setup instructions
+- API examples
+- Screenshots section
+- Testing instructions
+- Known limitations
+
+README must explain:
+- Project overview
+- Problem statement
+- Features
+- Architecture
+- Technologies
+- Database design
+- Installation
+- Configuration
+- Running backend
+- Running frontend
+- API testing
+- SQL scripts
+- Test execution
+- Screenshots
+- Future enhancements
+
+Never include:
+- Passwords
+- API keys
+- Database credentials
+- Personal NIC information
+- Real banking data
+- Private environment files
+
+# 10. PROFESSIONAL PROJECT EVIDENCE REPORT
+
+Create a professional report in Markdown:
+
+docs/PROJECT_REPORT.md
+
+Include:
+
+1. Cover page
+2. Project title
+3. Project objective
+4. Problem statement
+5. Technology stack
+6. Architecture
+7. Functional requirements
+8. Non-functional requirements
+9. Database design
+10. API implementation
+11. Frontend implementation
+12. Business logic
+13. Financial transaction handling
+14. Error handling
+15. Security considerations
+16. Testing approach
+17. Actual test results
+18. Screenshots and evidence checklist
+19. GitHub repository URL placeholder
+20. Known limitations
+21. Future improvements
+22. Personal contribution declaration
+
+Clearly identify this as an independently developed portfolio project.
+
+Do not invent dates, results, performance metrics, employment history, or achievements.
+
+Create a separate evidence checklist:
+
+docs/EVIDENCE_CHECKLIST.md
+
+Include:
+- GitHub repository
+- Commit history
+- Successful build output
+- Backend running screenshot
+- Swagger screenshot
+- React dashboard screenshot
+- Customer registration screenshot
+- Account creation screenshot
+- Deposit screenshot
+- Withdrawal screenshot
+- Fund transfer screenshot
+- SQL Server table screenshots
+- Transaction history screenshot
+- Postman execution screenshots
+- xUnit test output
+- Project report PDF
+
+# 11. IMPLEMENTATION STRATEGY — STRICTLY FOLLOW
+
+This is the most important instruction.
+
+Do not generate the entire project in one response.
+
+Work in these phases:
+
+PHASE 0 — Environment verification
+- Check .NET SDK.
+- Check Node.js and npm.
+- Check SQL Server installation and connectivity.
+- Check existing workspace.
+- Do not modify PostgreSQL.
+
+PHASE 1 — Project initialization
+- Create backend solution.
+- Create ASP.NET Core Web API.
+- Create React Vite application.
+- Confirm both applications run.
+
+PHASE 2 — Database
+- Configure SQL Server.
+- Install EF Core 10 packages.
+- Create entities and DbContext.
+- Configure relationships and constraints.
+- Create initial migration.
+- Create BankCoreDb.
+- Verify tables in SQL Server.
+
+PHASE 3 — Customer and account APIs
+- Implement complete CRUD.
+- Add validation.
+- Test using Swagger.
+
+PHASE 4 — Financial transactions
+- Implement deposit.
+- Implement withdrawal.
+- Implement fund transfer.
+- Implement atomic database transactions.
+- Implement transaction history.
+- Test all business rules.
+
+PHASE 5 — React frontend
+- Create layout.
+- Create dashboard.
+- Implement customer pages.
+- Implement account pages.
+- Implement transaction forms.
+- Connect all APIs.
+- Test UI workflows.
+
+PHASE 6 — Testing
+- Write and run xUnit tests.
+- Import and run Postman collection.
+- Execute SQL verification scripts.
+- Fix defects.
+
+PHASE 7 — Documentation and GitHub
+- Create README.
+- Create architecture diagram.
+- Create SQL scripts.
+- Prepare Postman collection.
+- Prepare project report.
+- Create evidence checklist.
+
+PHASE 8 — Final verification
+- Run clean backend build.
+- Run frontend build.
+- Run all tests.
+- Verify database operations.
+- Verify all main workflows.
+- Record actual results.
+- Identify limitations.
+
+# 12. HOW YOU MUST WORK WITH ME
+
+I am a junior developer learning .NET.
+
+Follow these instructions strictly:
+
+1. Work step by step.
+2. Give exact PowerShell commands for Windows.
+3. Explain why each command is necessary.
+4. Provide complete source code for every file you create or modify.
+5. Always mention the exact file path.
+6. Never provide incomplete snippets when I need a complete file.
+7. Do not silently remove existing code.
+8. Inspect the existing workspace before modifying files.
+9. Avoid overwriting working files without explaining why.
+10. Use compatible .NET 10 and EF Core 10 packages.
+11. Explain C# concepts in simple language.
+12. Follow clean coding practices.
+13. Do not skip testing.
+14. Do not move to the next phase until I confirm the current checkpoint.
+15. When errors occur, diagnose and fix them before continuing.
+16. Keep the implementation realistic for a junior developer to explain in an interview.
+17. Prioritize essential MVP features over unnecessary complexity.
+18. Maintain a checklist of completed and pending tasks.
+19. Ask me to paste command output when you need to verify a result.
+20. Never claim successful execution when you have not executed the code.
+
+# 13. FIRST ACTION
+
+Start by inspecting the current D:\BankCore workspace.
+
+Check:
+- Existing backend files
+- Existing frontend files
+- Existing project configuration
+- SQL Server installation status
+- Available .NET SDK
+
+Do not overwrite existing files.
+
+Then provide:
+1. A concise assessment of the workspace.
+2. A prioritized implementation plan.
+3. The exact first PowerShell commands.
+4. The first complete source files.
+5. A test procedure.
+6. A checkpoint requiring my confirmation.
+
+Start with Phase 0 or continue from the existing Phase 1 files if they are already working.
+
+Remember: Our immediate goal is a working MVP with credible, honest technical evidence before the People's Bank HR deadline of 2 November 2026, 8:00 AM.

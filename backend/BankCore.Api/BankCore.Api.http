@@ -1,0 +1,56 @@
+@BankCore.Api_HostAddress = http://localhost:5095
+
+### List customers
+GET {{BankCore.Api_HostAddress}}/api/customers?page=1&pageSize=20
+Accept: application/json
+
+### Create customer
+POST {{BankCore.Api_HostAddress}}/api/customers
+Content-Type: application/json
+
+{
+  "fullName": "Amara Perera",
+  "nic": "901234567V",
+  "email": "amara.perera@example.test",
+  "phoneNumber": "0712345678",
+  "address": "Colombo"
+}
+
+### Get customer
+GET {{BankCore.Api_HostAddress}}/api/customers/1
+Accept: application/json
+
+### Update customer
+PUT {{BankCore.Api_HostAddress}}/api/customers/1
+Content-Type: application/json
+
+{
+  "fullName": "Amara Perera",
+  "email": "amara.updated@example.test",
+  "phoneNumber": "0712345678",
+  "address": "Kandy"
+}
+
+### List accounts
+GET {{BankCore.Api_HostAddress}}/api/accounts?page=1&pageSize=20
+Accept: application/json
+
+### Create account
+POST {{BankCore.Api_HostAddress}}/api/accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "1000000001",
+  "customerId": 1,
+  "accountType": "Savings",
+  "openingBalance": 5000,
+  "currency": "LKR"
+}
+
+### Get account
+GET {{BankCore.Api_HostAddress}}/api/accounts/1
+Accept: application/json
+
+### Deactivate account
+PATCH {{BankCore.Api_HostAddress}}/api/accounts/1/status?active=false
+Accept: application/json
