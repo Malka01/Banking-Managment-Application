@@ -43,6 +43,8 @@ public class BankCoreDbContext(DbContextOptions<BankCoreDbContext> options) : Db
             entity.Property(x => x.Amount).HasPrecision(18, 2);
             entity.Property(x => x.PreviousBalance).HasPrecision(18, 2);
             entity.Property(x => x.NewBalance).HasPrecision(18, 2);
+            entity.ToTable("Transactions", table =>
+                table.HasCheckConstraint("CK_Transactions_Amount_Positive", "[Amount] > 0"));
             entity.HasIndex(x => new { x.AccountId, x.CreatedAt });
             entity.HasOne(x => x.Account).WithMany(x => x.Transactions).HasForeignKey(x => x.AccountId)
                 .OnDelete(DeleteBehavior.Restrict);

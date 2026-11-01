@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import './App.css'
 
-const API = import.meta.env.VITE_API_URL || 'https://localhost:7220/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5095/api'
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, {

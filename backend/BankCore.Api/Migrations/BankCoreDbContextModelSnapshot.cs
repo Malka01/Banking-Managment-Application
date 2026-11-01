@@ -205,7 +205,10 @@ namespace BankCore.Api.Migrations
 
                     b.HasIndex("AccountId", "CreatedAt");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Transactions_Amount_Positive", "[Amount] > 0");
+                        });
                 });
 
             modelBuilder.Entity("BankCore.Api.Models.Account", b =>

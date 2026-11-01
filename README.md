@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Set `VITE_API_URL` if the API uses a different HTTPS port. The default frontend URL is `https://localhost:7220/api`.
+Set `VITE_API_URL` if the API uses a different HTTPS port. The default frontend URL is `http://localhost:5095/api`.
 
 ## API examples
 
