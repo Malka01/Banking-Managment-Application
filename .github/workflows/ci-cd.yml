@@ -1,0 +1,139 @@
+name: BankCore CI/CD
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: "10.0.x"
+  NODE_VERSION: "22.x"
+  API_PROJECT: backend/BankCore.Api/BankCore.Api.csproj
+  SOLUTION_FILE: backend/BankCore.slnx
+
+jobs:
+  backend:
+    name: Backend build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore backend dependencies
+        run: dotnet restore "$API_PROJECT"
+
+      - name: Build backend
+        run: dotnet build "$API_PROJECT" --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test "$SOLUTION_FILE" --configuration Release --no-build --no-restore
+
+      - name: Publish backend
+        run: dotnet publish "$API_PROJECT" --configuration Release --no-build --output "${{ github.workspace }}/artifacts/api"
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 10.0.14
+
+      - name: Generate migration deployment script
+        run: |
+          mkdir -p "${{ github.workspace }}/artifacts/database"
+          dotnet ef migrations script \
+            --project "$API_PROJECT" \
+            --startup-project "$API_PROJECT" \
+            --configuration Release \
+            --no-build \
+            --output "${{ github.workspace }}/artifacts/database/BankCore-migrations.sql"
+
+      - name: Upload backend and database artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bankcore-backend-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+
+  frontend:
+    name: Frontend lint and build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bankcore-frontend-${{ github.sha }}
+          path: frontend/dist
+          if-no-files-found: error
+
+  deployment-package:
+    name: Prepare deployment package
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bankcore-backend-${{ github.sha }}
+          path: deployment/backend
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bankcore-frontend-${{ github.sha }}
+          path: deployment/frontend
+
+      - name: Create deployment package
+        run: |
+          cat > deployment/DEPLOYMENT-NOTES.txt <<'EOF'
+          BankCore deployment package
+
+          Contents:
+          - backend/: published ASP.NET Core API and EF migration script
+          - frontend/: production Vite build
+
+          The migration script must be reviewed and applied to the target SQL Server
+          using protected deployment credentials. This workflow does not access the
+          development database or store database credentials.
+          EOF
+          tar -czf "BankCore-${GITHUB_SHA}.tar.gz" deployment
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: bankcore-deployment-${{ github.sha }}
+          path: BankCore-${{ github.sha }}.tar.gz
+          if-no-files-found: error

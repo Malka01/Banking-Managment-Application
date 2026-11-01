@@ -65,3 +65,18 @@ The financial service build has been verified locally. Live SQL Server execution
 ## Limitations
 
 This MVP has no authentication or authorization, uses a development CORS allow-list, and does not connect to real accounts, payment networks, or customer data. Add identity, authorization policies, operational monitoring, and a production deployment review before considering any non-demo use.
+
+## CI/CD
+
+The workflow at [.github/workflows/ci-cd.yml](./.github/workflows/ci-cd.yml) runs on pushes and pull requests targeting `main` or `master`, and can also be started manually from GitHub Actions.
+
+It:
+
+1. Restores and builds the .NET API.
+2. Runs the available .NET test projects.
+3. Publishes the API and generates an EF Core migration SQL artifact.
+4. Installs frontend dependencies with `npm ci`.
+5. Runs frontend linting and the production build.
+6. Packages backend, frontend, and database artifacts for deployment.
+
+The workflow does not connect to SQL Server or apply migrations automatically. A real deployment should use protected GitHub environment secrets and a reviewed migration step.
