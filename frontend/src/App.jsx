@@ -28,7 +28,7 @@ function App() {
       const [customerData, accountData, transactionData] = await Promise.all([
         request('/customers?pageSize=100'),
         request('/accounts?pageSize=100'),
-        request('/transactions?pageSize=10'),
+        request('/transactions?pageSize=100'),
       ])
       setCustomers(customerData)
       setAccounts(accountData)
@@ -74,7 +74,7 @@ function App() {
             </button>
           ))}
         </nav>
-        <div className="sidebar-foot">Demo environment<br /><strong>SQL Server API</strong></div>
+        <div className="sidebar-foot">Environment<br /><strong>SQL Server API</strong></div>
       </aside>
       <main className="main-content">
         <header className="topbar"><div><p className="eyebrow">Good morning</p><h1>{section === 'dashboard' ? 'Financial overview' : section[0].toUpperCase() + section.slice(1)}</h1></div><button className="refresh" onClick={loadData}>↻ Refresh</button></header>
@@ -92,7 +92,7 @@ function App() {
 function Dashboard({ customers, accounts, transactions, totalBalance, deposits, withdrawals }) {
   return <><section className="hero-panel"><div><p className="eyebrow">Total managed balance</p><div className="balance">LKR {totalBalance.toLocaleString('en-LK', { minimumFractionDigits: 2 })}</div><p className="muted">Across {accounts.totalCount} active and inactive accounts</p></div><div className="hero-icon">◈</div></section>
     <div className="metrics"><Metric label="Total customers" value={customers.totalCount} icon="♙" /><Metric label="Total accounts" value={accounts.totalCount} icon="▣" /><Metric label="Deposits shown" value={`LKR ${deposits.toLocaleString()}`} icon="↗" /><Metric label="Withdrawals shown" value={`LKR ${withdrawals.toLocaleString()}`} icon="↘" /></div>
-    <section className="panel"><div className="panel-title"><div><p className="eyebrow">Activity</p><h2>Recent transactions</h2></div><span className="pill">{transactions.totalCount} total</span></div><TransactionTable transactions={transactions.items} /></section>
+    <section className="panel"><div className="panel-title"><div><p className="eyebrow">Activity</p><h2>Recent transactions</h2></div><span className="pill">{transactions.totalCount} total</span></div><TransactionTable transactions={transactions.items.slice(0, 10)} /></section>
   </>
 }
 
